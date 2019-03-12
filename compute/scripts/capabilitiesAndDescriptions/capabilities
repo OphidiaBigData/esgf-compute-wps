@@ -49,36 +49,36 @@
         <ows:Operation name="GetCapabilities">
             <ows:Dcp>
                 <ows:Http>
-                    <ows:Post>https://ophidialab.cmcc.it/wps/wps</ows:Post>
+                    <ows:Post>https://127.0.0.1/wps/wps</ows:Post>
                 </ows:Http>
             </ows:Dcp>
             <ows:Dcp>
                 <ows:Http>
-                    <ows:Get>https://ophidialab.cmcc.it/wps/wps</ows:Get>
+                    <ows:Get>https://127.0.0.1/wps/wps</ows:Get>
                 </ows:Http>
             </ows:Dcp>
         </ows:Operation>
         <ows:Operation name="DescribeProcess">
             <ows:Dcp>
                 <ows:Http>
-                    <ows:Post>https://ophidialab.cmcc.it/wps/wps</ows:Post>
+                    <ows:Post>https://127.0.0.1/wps/wps</ows:Post>
                 </ows:Http>
             </ows:Dcp>
             <ows:Dcp>
                 <ows:Http>
-                    <ows:Get>https://ophidialab.cmcc.it/wps/wps</ows:Get>
+                    <ows:Get>https://127.0.0.1/wps/wps</ows:Get>
                 </ows:Http>
             </ows:Dcp>
         </ows:Operation>
         <ows:Operation name="Execute">
             <ows:Dcp>
                 <ows:Http>
-                    <ows:Post>https://ophidialab.cmcc.it/wps/wps</ows:Post>
+                    <ows:Post>https://127.0.0.1/wps/wps</ows:Post>
                 </ows:Http>
             </ows:Dcp>
             <ows:Dcp>
                 <ows:Http>
-                    <ows:Get>https://ophidialab.cmcc.it/wps/wps</ows:Get>
+                    <ows:Get>https://127.0.0.1/wps/wps</ows:Get>
                 </ows:Http>
             </ows:Dcp>
         </ows:Operation>
