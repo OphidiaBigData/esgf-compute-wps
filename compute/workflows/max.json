@@ -1,0 +1,29 @@
+{
+        "name": "MAX",
+        "author": "CMCC",
+        "abstract": "Simple workflow to evaluate the maximum value",
+        "exec_mode": "sync",
+        "ncores": "1",
+	"on_exit": "oph_delete",
+        "tasks":
+        [
+                {
+                        "name": "ImportNC",
+                        "operator": "oph_importnc",
+                        "arguments": [ "measure=$1", "src_path=$2", "imp_dim=time", "subset_dims=$5", "subset_filter=$6", "subset_type=$7" ]
+                },
+                {
+                        "name": "ExtractMax",
+                        "operator": "oph_reduce",
+                        "arguments": [ "operation=max" ],
+                         "dependencies": [  { "task": "ImportNC", "type": "single" } ]
+                },
+                {
+                        "name": "ExportNC2",
+                        "operator": "oph_exportnc2",
+                        "arguments": [ "output_path=$3", "output_name=$4" ],
+                        "dependencies": [  { "task": "ExtractMax", "type": "single" } ]
+                }
+                
+        ]
+}

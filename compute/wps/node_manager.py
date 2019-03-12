@@ -12,7 +12,11 @@ import re
 import string
 import tempfile
 import time
+import uuid
+import urllib
 from contextlib import closing
+from pprint import pprint
+
 
 import cwt
 import django
@@ -30,6 +34,8 @@ from wps import wps_xml
 from wps.auth import oauth2
 from wps.auth import openid
 from wps.processes import get_process
+
+from wps import ophidia_wps
 
 logger = logging.getLogger('wps.node_manager')
 
@@ -157,13 +163,24 @@ class NodeManager(object):
 
         # Case insesitive
         temp = dict((x.lower(), y) for x, y in params.iteritems())
-
+        
         if name.lower() not in temp:
             logger.info('Missing required parameter %s', name)
 
             raise NodeManagerWPSError(wps_lib.MissingParameterValue, name)
 
         return temp[name.lower()]
+        
+        
+    def get_datainputs_from_request(self,complete_request):
+        """ Gets a parameter from a django QueryDict """
+        path = complete_request.get_full_path()
+        for i in path.split('&'):
+            if i[:10] == 'datainputs':
+                url = urllib.unquote(i).decode('utf8')
+                match = re.search('\[(.*)\]', url)
+                url_decoded = match.group(0)
+                return url_decoded
 
     def get_status(self, job_id):
         """ Get job status. """
@@ -227,33 +244,34 @@ class NodeManager(object):
         op_by_id = lambda x: [y for y in o if y.identifier == x][0]
 
         op = op_by_id(identifier)
-
+        
         logger.info('Job {} Preparing process inputs'.format(job.id))
 
         operations = dict((x.name, x.parameterize()) for x in o)
-
+        
         domains = dict((x.name, x.parameterize()) for x in d)
-
+        
         variables = dict((x.name, x.parameterize()) for x in v)
-
+        
         process = get_process(identifier)
-
+        
         params = {
                 'cwd': '/tmp',
                 'job_id': job.id,
                 'user_id': user.id,
+                'username': user.username,
                 }
 
         logger.info('Job {} Building celery workflow'.format(job.id))
 
         chain = tasks.check_auth.s(**params)
-
+        
         chain = (chain | process.si(variables, operations, domains, **params))
 
         logger.info('Job {} Executing celery workflow'.format(job.id))
 
         chain()
-
+        
     def execute_cdas2(self, job, identifier, data_inputs):
         logger.info('Job {} Executing CDAS2 process "{}"'.format(job.id, identifier))
 
@@ -274,7 +292,7 @@ class NodeManager(object):
             logger.debug('Job {} Request {}'.format(job.id, request_cmd))
 
             request.send(str(request_cmd))
-
+            
     def execute(self, user, identifier, data_inputs):
         """ WPS execute operation """
         try:
@@ -303,7 +321,7 @@ class NodeManager(object):
 
         return job.report
 
-    def handle_get(self, params):
+    def handle_get(self, complete_request, params):
         """ Handle an HTTP GET request. """
         request = self.get_parameter(params, 'request')
 
@@ -322,11 +340,11 @@ class NodeManager(object):
         elif operation == 'execute':
             identifier = self.get_parameter(params, 'identifier')
 
-            data_inputs = self.get_parameter(params, 'datainputs')
-
+            data_inputs = self.get_datainputs_from_request(complete_request)
+            
         return api_key, operation, identifier, data_inputs
 
-    def handle_post(self, data, params):
+    def handle_post(self, rquest, data, params):
         """ Handle an HTTP POST request. 
 
         NOTE: we only support execute requests as POST for the moment
@@ -353,6 +371,7 @@ class NodeManager(object):
     def handle_request(self, request):
         """ Convert HTTP request to intermediate format. """
         if request.method == 'GET':
-            return self.handle_get(request.GET)
+            #print(request.get_full_path())
+            return self.handle_get(request,request.GET)
         elif request.method == 'POST':
-            return self.handle_post(request.body, request.GET)
+            return self.handle_post(request, request.body, request.GET)

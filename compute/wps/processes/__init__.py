@@ -10,3 +10,4 @@ cdms2.setNetcdfDeflateLevelFlag(0)
 
 from wps.processes.process import *
 from wps.processes.cdat import *
+from wps.processes.ophidia import *
